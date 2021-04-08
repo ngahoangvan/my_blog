@@ -7,7 +7,7 @@ verify_ssl = true
 pylint = "*"
 
 [packages]
-django = "==3.0.6"
+django = "==3.0.14"
 django-extensions = "*"
 ipython = "*"
 notebook = "*"
