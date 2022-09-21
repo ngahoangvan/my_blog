@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  db:
+    container_name: pg13
+    image: timescale/timescaledb:latest-pg13
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Python123}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+    volumes:
+      - ./db_data/postgres/db-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+    ports:
+      - 5432:5432
+    networks:
+      - app_network
+
+  app:
+    container_name: django
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: "my-blog:v1"
+    env_file:
+      - 'src/.env'
+    environment:
+      - DATABASE_HOST=pg13
+      - DATABASE_PORT=5432
+    restart: always
+    volumes:
+      - ./src/static:/app/static
+      - ./src/media:/app/media
+    command: /gunicorn.sh
+    # ports:
+    #   - "8000:8000"
+    networks:
+      - app_network
+
+networks:
+  app_network:
