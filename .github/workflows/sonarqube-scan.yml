@@ -1,0 +1,36 @@
+name: SonarQube Scan
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
+    - name: Run Unit Test
+      # if: github.event_name = 'pull_request'
+      run: |
+        echo "Run unit test to generate coverage.xml"
+    #     sed -i 's/\/home\/runner\/work\/${{github.event.repository.name}}\/${{github.event.repository.name}}\///g' coverage.xml
+      continue-on-error: true
+
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.verbose=true
+          -Dsonar.sources=.
