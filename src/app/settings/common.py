@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
 
 
 # Application definition
@@ -52,6 +52,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "middlewares.HealthCheckMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -161,3 +162,35 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = "authentication.User"
+
+
+USE_S3 = os.getenv("USE_S3", "False").lower() in ("true", "t")
+
+# If use S3, updated setting for static and media
+if USE_S3 is True:
+    INSTALLED_APPS += ["storages"]
+    # Note: this setting only for local using in case need test S3 from local
+    # when the service running on the AWS, the service-role applied and don't need the key to access.
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+    # aws settings
+    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+    AWS_DEFAULT_ACL = None
+
+    # This is the static domain of blog, example: dev-blog.jhoangv.com
+    AWS_S3_CUSTOM_DOMAIN = os.getenv("STATIC_CUSTOM_DOMAIN")
+    if not AWS_S3_CUSTOM_DOMAIN:
+        AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+
+    # s3 static settings
+    # STATIC_LOCATION = 'static'
+    # STATIC_ROOT = STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+    # STATICFILES_STORAGE = 'services.storage_backends.StaticStorage'
+
+    # s3 public media settings
+    PUBLIC_MEDIA_LOCATION = "media"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
+    DEFAULT_FILE_STORAGE = "services.storage_backends.PublicMediaStorage"

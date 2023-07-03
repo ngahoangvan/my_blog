@@ -1,6 +1,6 @@
 import uuid
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -20,6 +20,33 @@ class LowercaseEmailField(models.EmailField):
         if isinstance(value, str):
             return value.lower()
         return value
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, password):
+        if email is None:
+            raise ValueError("Users must have an email address")
+
+        if password is None:
+            raise ValueError("Users must have a password")
+
+        user = self.model(email=self.normalize_email(email))
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, email, password):
+        if email is None:
+            raise ValueError("Users must have an email address")
+        if password is None:
+            raise ValueError("Users must have a password")
+
+        user = self.create_user(email, password)
+        user.is_superuser = True
+        user.is_staff = True
+        user.is_datacenter_staff = True
+        user.save()
+        return user
 
 
 # gender options
@@ -84,6 +111,8 @@ class User(AbstractUser):
     # setting login on admin page with email
     REQUIRED_FIELDS = []
     USERNAME_FIELD = "email"
+
+    objects = UserManager()
 
     def __str__(self):
         return f"{self.username} | {self.get_full_name()}"

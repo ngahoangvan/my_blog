@@ -26,5 +26,5 @@ class TestAuthenticationViewUnauthenticated(APITestCase):
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["tokens"]["refresh_token"] is not None
-        assert response.data["tokens"]["access_token"] is not None
+        assert response.data["tokens"]["refresh"] is not None
+        assert response.data["tokens"]["access"] is not None

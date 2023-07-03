@@ -5,6 +5,8 @@ on:
       - "master"
   pull_request:
     types: [opened, reopened, synchronize]
+    branches:
+      - "master"
 
 
 jobs:
@@ -18,8 +20,14 @@ jobs:
     - name: Run Unit Test
       # if: github.event_name = 'pull_request'
       run: |
-        echo "Run unit test to generate coverage.xml"
+        docker-compose -f docker-compose.test.yml run app sh bin/dj-test.sh
     #     sed -i 's/\/home\/runner\/work\/${{github.event.repository.name}}\/${{github.event.repository.name}}\///g' coverage.xml
+      continue-on-error: true
+
+    - name: Fix code coverage paths
+      # if: github.event_name = 'pull_request'
+      run: |
+        sed -i 's#<source>/app</source>#<source>/github/workspace/src</source>#' src/coverage.xml
       continue-on-error: true
 
     - name: SonarCloud Scan
@@ -31,6 +39,7 @@ jobs:
         args: >
           -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.python.coverage.reportPaths=src/coverage.xml
+          -Dsonar.scm.exclusions.disabled=true
           -Dsonar.verbose=true
           -Dsonar.sources=.
