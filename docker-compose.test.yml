@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  db:
+    container_name: pg13-test
+    image: timescale/timescaledb:latest-pg13
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Python123}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+    expose:
+      - 5432
+
+  app:
+    container_name: django
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: "my-blog-test:v1"
+    environment:
+      - SECRET_KEY=wholetsthedogout
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=Python123
+    volumes:
+      - ./src/:/app/
+      - ./bin/:/app/bin/
+    command: sh bin/dj-test.sh
+    depends_on:
+      - db

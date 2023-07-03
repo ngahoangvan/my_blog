@@ -4,8 +4,15 @@ db_data
 # Django
 static
 media
+images
 __pycache__
 .env
 
 # Working tool
 .vscode
+.coverage
+coverage.xml
+
+# jupyter lab
+.ipynb_checkpoints
+*.ipynb
