@@ -45,6 +45,8 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.is_staff = True
         user.is_datacenter_staff = True
+        user.first_name = "Admin"
+        user.last_name = "System"
         user.save()
         return user
 
@@ -116,6 +118,13 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} | {self.get_full_name()}"
+
+    @property
+    def initials(self):
+        if self.first_name and self.last_name:
+            return self.last_name[0] + self.first_name[0]
+        else:
+            return ""
 
     def tokens(self):
         refresh_tokens = RefreshToken.for_user(self)
