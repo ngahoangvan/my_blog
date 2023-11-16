@@ -39,12 +39,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
+    "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
     "authentication",
     "users",
+    "skill",
+    "bio",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -171,8 +175,8 @@ if USE_S3 is True:
     INSTALLED_APPS += ["storages"]
     # Note: this setting only for local using in case need test S3 from local
     # when the service running on the AWS, the service-role applied and don't need the key to access.
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+    # AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+    # AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
     # aws settings
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")

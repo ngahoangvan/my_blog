@@ -12,6 +12,7 @@ class UserAdmin(BaseUserAdmin):
 
     # display on admin page
     list_display = (
+        "id",
         "username",
         "email",
         "first_name",

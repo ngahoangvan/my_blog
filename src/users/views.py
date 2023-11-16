@@ -1,10 +1,12 @@
+import boto3
+from botocore.exceptions import ClientError
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
 from authentication.models import User
 
-from .serializers import UserSerializer
+from .serializers import GenS3PresignedURLSerializer, UserSerializer
 
 
 # Create your views here.
@@ -50,3 +52,31 @@ class GetUserByIdAPIView(generics.GenericAPIView):
         return Response(
             data={"data": UserSerializer(user).data}, status=status.HTTP_200_OK
         )
+
+
+class GenS3PresignedURLAPIView(generics.GenericAPIView):
+
+    serializer_class = GenS3PresignedURLSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        s3_client = boto3.client("s3")
+        try:
+            response = s3_client.generate_presigned_post(
+                "put_object",
+                Key=data["object_name"],
+                # Params={
+                #     'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                #     'Key': data['object_name']
+                # },
+                ExpiresIn=36000,
+            )
+            return Response(data={"presigned_url": response}, status=status.HTTP_200_OK)
+        except ClientError as e:
+            return Response(
+                data={"error": "Could not get a presigned URL", "msg": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

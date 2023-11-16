@@ -14,3 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
             "is_superuser",
             "is_staff",
         ]
+
+
+class GenS3PresignedURLSerializer(serializers.Serializer):
+    object_name = serializers.CharField()
