@@ -28,8 +28,7 @@ services:
       - DATABASE_PORT=5432
     restart: always
     volumes:
-      - ./src/static:/app/static
-      - ./src/media:/app/media
+      - ./src:/app
     command: /gunicorn.sh
     # ports:
     #   - "8000:8000"
