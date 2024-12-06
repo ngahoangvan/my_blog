@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
+    "elasticapm.contrib.django",  # Logging to APM
     "authentication",
     "users",
     "skill",
@@ -48,6 +49,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "elasticapm.contrib.django.middleware.TracingMiddleware",
+    "elasticapm.contrib.django.middleware.Catch404Middleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -198,3 +201,56 @@ if USE_S3 is True:
     PUBLIC_MEDIA_LOCATION = "media"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
     DEFAULT_FILE_STORAGE = "services.storage_backends.PublicMediaStorage"
+
+ELASTIC_APM = {
+    # Set the required service name. Allowed characters:
+    # a-z, A-Z, 0-9, -, _, and space
+    "SERVICE_NAME": os.environ.get("APM_SERVICE_NAME"),
+    # Use if APM Server requires a secret token
+    "SECRET_TOKEN": os.environ.get("APM_SECRET_TOKEN"),
+    # Set the custom APM Server URL (default: http://localhost:8200)
+    "SERVER_URL": os.environ.get("APM_SERVER_URL"),
+    # Set the service environment
+    "ENVIRONMENT": os.environ.get("APM_ENVIRONMENT"),
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"
+            # 'format': '[%(asctime)s] %(levelname)s|%(name)s|%(message)s',
+            # 'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    "handlers": {
+        "elasticapm": {
+            "level": "WARNING",
+            "class": "elasticapm.contrib.django.handlers.LoggingHandler",
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "mysite": {
+            "level": "WARNING",
+            "handlers": ["elasticapm"],
+            "propagate": False,
+        },
+        # Log errors from the Elastic APM module to the console (recommended)
+        "elasticapm.errors": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}

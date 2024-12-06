@@ -7,10 +7,10 @@ import sys
 def main():
     """Run administrative tasks."""
     # Load .env in development
-    if (
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "app.settings.dev")
-        == "app.settings.dev"
-    ):
+    if os.environ.setdefault("DJANGO_SETTINGS_MODULE", "app.settings.dev") in [
+        "app.settings.dev",
+        "app.settings.dev_notebook",
+    ]:
         from dotenv import load_dotenv
 
         load_dotenv()
